@@ -7,7 +7,7 @@ class CounterPage extends StatelessWidget {
   final int? counter;
   final VoidCallback? onIncrement;
 
-  CounterPage({
+  const CounterPage({
     Key? key,
     this.counter,
     this.onIncrement,

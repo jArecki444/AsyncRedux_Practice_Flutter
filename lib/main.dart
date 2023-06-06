@@ -13,16 +13,18 @@ late Store<int> store;
 
 void main() {
   store = Store<int>(initialState: 0);
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return StoreProvider<int>(
       store: store,
-      child: MaterialApp(home: CounterPageConnector()),
+      child: const MaterialApp(home: CounterPageConnector()),
     );
   }
 }

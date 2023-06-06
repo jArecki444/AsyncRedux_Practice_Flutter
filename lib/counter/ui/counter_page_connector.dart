@@ -10,7 +10,7 @@ import 'counter_page.dart';
 /// with the view-model created with the previous state.
 /// Only if the view-model changed, the connector rebuilds.
 class CounterPageConnector extends StatelessWidget {
-  CounterPageConnector({Key? key}) : super(key: key);
+  const CounterPageConnector({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
