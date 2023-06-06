@@ -1,125 +1,124 @@
+import 'package:async_redux/async_redux.dart';
 import 'package:flutter/material.dart';
 
+late Store<int> store;
+
+/// This example shows a counter and a button.
+/// When the button is tapped, the counter will increment synchronously.
+///
+/// In this simple example, the app state is simply a number (the counter),
+/// and thus the store is defined as `Store<int>`. The initial state is 0.
+///
 void main() {
-  runApp(const MyApp());
+  store = Store<int>(initialState: 0);
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) => StoreProvider<int>(
+      store: store,
+      child: MaterialApp(
+        home: MyHomePageConnector(),
+      ));
+}
 
-  // This widget is the root of your application.
+/// This action increments the counter by [amount]].
+class IncrementAction extends ReduxAction<int> {
+  final int amount;
+
+  IncrementAction({required this.amount});
+
+  @override
+  int reduce() => state + amount;
+}
+
+/// This widget is a connector.
+/// It connects the store to [MyHomePage] (the dumb-widget).
+/// Each time the state changes, it creates a view-model, and compares it
+/// with the view-model created with the previous state.
+/// Only if the view-model changed, the connector rebuilds.
+class MyHomePageConnector extends StatelessWidget {
+  MyHomePageConnector({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return StoreConnector<int, ViewModel>(
+      vm: () => Factory(this),
+      builder: (BuildContext context, ViewModel vm) => MyHomePage(
+        counter: vm.counter,
+        onIncrement: vm.onIncrement,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+/// Factory that creates a view-model for the StoreConnector.
+class Factory extends VmFactory<int, MyHomePageConnector, ViewModel> {
+  Factory(connector) : super(connector);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  ViewModel fromStore() => ViewModel(
+        counter: state,
+        onIncrement: () => dispatch(IncrementAction(amount: 1)),
+      );
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+/// A view-model is a helper object to a [StoreConnector] widget. It holds the
+/// part of the Store state the corresponding dumb-widget needs, and may also
+/// convert this state part into a more convenient format for the dumb-widget
+/// to work with.
+///
+/// You must implement equals/hashcode for the view-model class to work.
+/// Otherwise, the [StoreConnector] will think the view-model changed everytime,
+/// and thus will rebuild everytime. This won't create any visible problems
+/// to your app, but is inefficient and may be slow.
+///
+/// By extending the [Vm] class you can implement equals/hashcode without
+/// having to override these methods. Instead, simply list all fields
+/// (which are not immutable, like functions) to the [equals] parameter
+/// in the constructor.
+///
+class ViewModel extends Vm {
+  final int counter;
+  final VoidCallback onIncrement;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  ViewModel({
+    required this.counter,
+    required this.onIncrement,
+  }) : super(equals: [counter]);
+}
+
+/// This is the "dumb-widget". It has no notion of the store, the state, the
+/// connector or the view-model. It just gets the parameters it needs to display
+/// itself, and callbacks it should call when reacting to the user interface.
+class MyHomePage extends StatelessWidget {
+  final int? counter;
+  final VoidCallback? onIncrement;
+
+  MyHomePage({
+    Key? key,
+    this.counter,
+    this.onIncrement,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: const Text('Increment Example')),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+          children: [
+            const Text('You have pushed the button this many times:'),
+            Text('$counter', style: const TextStyle(fontSize: 30))
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        onPressed: onIncrement,
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
