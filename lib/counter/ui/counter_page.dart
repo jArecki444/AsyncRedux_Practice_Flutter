@@ -16,7 +16,7 @@ class CounterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('AsyncRedux Increment Example')),
+      appBar: AppBar(title: const Text('AsyncRedux Simple Increment')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

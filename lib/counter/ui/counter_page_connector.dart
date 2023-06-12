@@ -1,8 +1,9 @@
 // This widget is a connector.
 import 'package:async_redux/async_redux.dart';
+import 'package:asyncredux_practice_flutter/counter/async_redux/action_reducer.dart';
+import 'package:asyncredux_practice_flutter/store/global_app_state.dart';
 import 'package:flutter/material.dart';
 
-import '../async_redux/vm_factory.dart';
 import 'counter_page.dart';
 
 /// It connects the store to [CounterPage] (the dumb-widget).
@@ -14,12 +15,29 @@ class CounterPageConnector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<int, ViewModel>(
-      vm: () => Factory(this),
-      builder: (BuildContext context, ViewModel vm) => CounterPage(
+    return StoreConnector<GlobalAppState, _ViewModel>(
+      converter: (store) => _ViewModel.fromStore(store),
+      builder: (BuildContext context, _ViewModel vm) => CounterPage(
         counter: vm.counter,
-        onIncrement: vm.onIncrement,
+        onIncrement: () => onIncrement(context),
       ),
     );
   }
+
+  void onIncrement(BuildContext context) {
+    StoreProvider.dispatch(context, IncrementAction(amount: 1));
+  }
+}
+
+/// The view-model holds the part of the Store state the dumb-widget needs.
+class _ViewModel extends Vm {
+  final int counter;
+
+  _ViewModel({
+    required this.counter,
+  }) : super(equals: [counter]);
+
+  static _ViewModel fromStore(Store<GlobalAppState> store) => _ViewModel(
+        counter: store.state.counterState.counterValue,
+      );
 }
