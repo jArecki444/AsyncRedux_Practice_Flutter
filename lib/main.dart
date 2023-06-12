@@ -10,12 +10,7 @@ import 'store/global_app_state.dart';
 late Store<GlobalAppState> store;
 
 void main() {
-  store = Store<GlobalAppState>(
-    initialState: GlobalAppState(
-      counterState: CounterState(counterValue: 0),
-      asyncCounterState: const AsyncCounterState(counter: 0, description: ''),
-    ),
-  );
+  store = Store<GlobalAppState>(initialState: GlobalAppState.initialState());
   runApp(const AsyncCounterApp()); // or runApp(const SimpleCounterApp());
 }
 

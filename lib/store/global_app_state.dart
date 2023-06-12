@@ -19,4 +19,9 @@ class GlobalAppState {
       asyncCounterState: asyncCounterState ?? this.asyncCounterState,
     );
   }
+
+  static GlobalAppState initialState() => GlobalAppState(
+        counterState: CounterState.initialState(),
+        asyncCounterState: AsyncCounterState.initialState(),
+      );
 }
